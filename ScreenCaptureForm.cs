@@ -41,6 +41,7 @@ namespace ScreenCaptureApp
                 SizeMode = PictureBoxSizeMode.StretchImage,
                 BackColor = Color.Transparent
             };
+            pictureBox.Paint += PictureBox_Paint;
             this.Controls.Add(pictureBox);
 
             startButton = new Button
@@ -98,6 +99,18 @@ namespace ScreenCaptureApp
             catch (Exception ex)
             {
                 Console.WriteLine($"Помилка: {ex.Message}");
+            }
+        }
+
+        private void PictureBox_Paint(object sender, PaintEventArgs e)
+        {
+            int centerX = captureArea.Width / 2;
+            int centerY = captureArea.Height / 2;
+
+            using (Pen pen = new Pen(Color.Red, 2))
+            {
+                e.Graphics.DrawLine(pen, centerX - 10, centerY, centerX + 10, centerY);
+                e.Graphics.DrawLine(pen, centerX, centerY - 10, centerX, centerY + 10);
             }
         }
 
