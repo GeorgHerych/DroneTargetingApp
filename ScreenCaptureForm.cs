@@ -16,14 +16,16 @@ namespace ScreenCaptureApp
 
         public ScreenCaptureForm()
         {
+            // Make form transparent and always on top
             this.BackColor = Color.Magenta;
             this.TransparencyKey = Color.Magenta;
+            this.TopMost = true;
+            this.DoubleBuffered = true;
             InitializeComponents();
         }
 
         private void InitializeComponents()
         {
-
             this.FormBorderStyle = FormBorderStyle.None;
             this.WindowState = FormWindowState.Maximized;
             this.Text = "Screen Capture App";
@@ -37,6 +39,7 @@ namespace ScreenCaptureApp
                 Location = new Point(0, 0),
                 Size = new Size(screenBounds.Width, screenBounds.Height - 100),
                 SizeMode = PictureBoxSizeMode.StretchImage,
+                BackColor = Color.Transparent
             };
             this.Controls.Add(pictureBox);
 
@@ -86,15 +89,42 @@ namespace ScreenCaptureApp
             try
             {
                 using (Bitmap screenshot = CaptureScreen())
+                using (Bitmap processed = ProcessImage(screenshot))
                 {
                     pictureBox.Image?.Dispose();
-                    pictureBox.Image = (Bitmap)screenshot.Clone();
+                    pictureBox.Image = (Bitmap)processed.Clone();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Помилка: {ex.Message}");
             }
+        }
+
+        private Bitmap ProcessImage(Bitmap input)
+        {
+            // Convert the screenshot to grayscale and apply semi-transparency
+            Bitmap output = new Bitmap(input.Width, input.Height);
+
+            ColorMatrix cm = new ColorMatrix(new float[][]
+            {
+                new float[] {0.3f, 0.3f, 0.3f, 0, 0},
+                new float[] {0.59f, 0.59f, 0.59f, 0, 0},
+                new float[] {0.11f, 0.11f, 0.11f, 0, 0},
+                new float[] {0, 0, 0, 0.5f, 0},
+                new float[] {0, 0, 0, 0, 1}
+            });
+
+            ImageAttributes ia = new ImageAttributes();
+            ia.SetColorMatrix(cm);
+
+            using (Graphics g = Graphics.FromImage(output))
+            {
+                g.DrawImage(input, new Rectangle(0, 0, output.Width, output.Height),
+                           0, 0, input.Width, input.Height, GraphicsUnit.Pixel, ia);
+            }
+
+            return output;
         }
 
         private Bitmap CaptureScreen()
