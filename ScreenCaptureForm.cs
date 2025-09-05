@@ -89,6 +89,11 @@ namespace ScreenCaptureApp
         {
             try
             {
+                // Hide the form while capturing to avoid capturing itself and creating
+                // a pink layered effect when the timer is running.
+                this.Visible = false;
+                Application.DoEvents();
+
                 using (Bitmap screenshot = CaptureScreen())
                 using (Bitmap processed = ProcessImage(screenshot))
                 {
@@ -99,6 +104,11 @@ namespace ScreenCaptureApp
             catch (Exception ex)
             {
                 Console.WriteLine($"Помилка: {ex.Message}");
+            }
+            finally
+            {
+                // Ensure the form is visible again after capturing.
+                this.Visible = true;
             }
         }
 
